@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Dict
 from .models import Task, Robot, RobotStatus, TaskStatus, TaskUpdate
 import logging
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +43,32 @@ async def try_assign_tasks():
     if not idle_robots:
         logger.info("No idle robots available.")
         return
+
+    # --- FAILURE RECOVERY & MONITORING ---
+    current_time = time.time()
+    TIMEOUT_SECONDS = 60
+    
+    for task in wcs_tasks.values():
+        # 1. Check Timeouts
+        if task.status == TaskStatus.IN_PROGRESS and (current_time - task.updated_at > TIMEOUT_SECONDS):
+            logger.warning(f"Task {task.task_id} Timed Out!")
+            task.status = TaskStatus.FAILED
+            # Also set robot to ERROR if possible? Or just IDLE.
+            if task.assigned_robot_id and task.assigned_robot_id in robots:
+                 robots[task.assigned_robot_id].status = RobotStatus.ERROR
+        
+        # 2. auto-Retry Failed Tasks
+        if task.status == TaskStatus.FAILED and task.retry_count < 3:
+             logger.info(f"Retrying Task {task.task_id} (Attempt {task.retry_count + 1})")
+             task.status = TaskStatus.CREATED
+             task.retry_count += 1
+             task.assigned_robot_id = None
+             task.progress = 0.0
+             # Re-add to pending list for this iteration
+             pending_tasks.append(task)
+
+    # Sort again because we might have added retried tasks
+    pending_tasks.sort(key=lambda x: x.priority, reverse=True)
 
     # Assignment Loop
     while pending_tasks and idle_robots:

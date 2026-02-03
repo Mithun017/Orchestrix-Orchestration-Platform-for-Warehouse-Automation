@@ -80,6 +80,15 @@ function App() {
         }
     }
 
+    const handleFailRobot = async (robotId) => {
+        try {
+            await axios.post(`${API_URL}/robots/${robotId}/fail`)
+            alert(`Robot ${robotId} marked as FAILED.`)
+        } catch (e) {
+            alert("Error: " + e.message)
+        }
+    }
+
     return (
         <div className="app-container">
             <header style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
@@ -241,7 +250,12 @@ function App() {
                                     <div style={{ fontWeight: 'bold' }}>{robot.robot_id}</div>
                                     <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>Pos: ({robot.x}, {robot.y})</div>
                                 </div>
-                                <span className={`badge robot-${robot.status}`}>{robot.status}</span>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button onClick={() => handleFailRobot(robot.robot_id)} style={{ fontSize: '0.7rem', background: '#ef4444', padding: '0.2rem 0.5rem', height: 'fit-content' }}>
+                                        💀 Kill
+                                    </button>
+                                    <span className={`badge robot-${robot.status}`}>{robot.status}</span>
+                                </div>
                             </div>
                         ))}
                         {robots.length === 0 && <p style={{ opacity: 0.5 }}>No robots online.</p>}

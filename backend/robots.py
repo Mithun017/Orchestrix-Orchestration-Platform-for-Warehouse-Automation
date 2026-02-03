@@ -122,3 +122,20 @@ async def command_robot_start_task(robot_id: str, task: Task):
     # Run in background
     asyncio.create_task(execute_complex_task(robot_id, task))
     return {"msg": "Command received"}
+
+@router.post("/{robot_id}/fail")
+async def fail_robot(robot_id: str):
+    if robot_id not in wcs_robots:
+        return {"error": "Robot not found"}
+    
+    robot = wcs_robots[robot_id]
+    robot.status = RobotStatus.ERROR
+    
+    # Fail current task if any
+    if robot.current_task_id:
+        from .wcs import wcs_tasks # direct import to modify state
+        if robot.current_task_id in wcs_tasks:
+            wcs_tasks[robot.current_task_id].status = TaskStatus.FAILED
+            # The WCS monitor will pick this up and retry it
+            
+    return {"msg": f"Robot {robot_id} simulated failure."}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Dict
 import uuid
 from .models import Task, TaskCreate, TaskStatus, TaskUpdate
+import time
 
 router = APIRouter(prefix="/wms", tags=["WMS"])
 
@@ -16,7 +17,9 @@ async def create_task(task_in: TaskCreate):
         source=task_in.source,
         destination=task_in.destination,
         priority=task_in.priority,
-        estimated_time=task_in.estimated_time
+        estimated_time=task_in.estimated_time,
+        created_at=time.time(),
+        updated_at=time.time()
     )
     wms_tasks[task_id] = new_task
     

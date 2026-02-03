@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from enum import Enum
+import time
 
 class TaskStatus(str, Enum):
     CREATED = "CREATED"
@@ -12,7 +13,7 @@ class TaskStatus(str, Enum):
 class RobotStatus(str, Enum):
     IDLE = "IDLE"
     BUSY = "BUSY"
-    ERROR = "ERROR"
+    ERROR = "ERROR" # Robot reported error or went offline
 
 class Task(BaseModel):
     task_id: str
@@ -23,6 +24,9 @@ class Task(BaseModel):
     status: TaskStatus = TaskStatus.CREATED
     assigned_robot_id: Optional[str] = None
     progress: float = 0.0
+    created_at: float = 0.0
+    updated_at: float = 0.0
+    retry_count: int = 0
 
 class TaskCreate(BaseModel):
     source: str
@@ -37,7 +41,7 @@ class TaskUpdate(BaseModel):
 class Robot(BaseModel):
     robot_id: str
     status: RobotStatus = RobotStatus.IDLE
-    priority: int = 1 # Added Priority Field
+    priority: int = 1 
     current_task_id: Optional[str] = None
     x: int = 0
     y: int = 0
