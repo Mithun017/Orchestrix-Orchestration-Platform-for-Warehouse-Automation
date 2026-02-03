@@ -1,0 +1,157 @@
+# ORCHESTRIX – Intelligent Warehouse Orchestration Platform
+
+---
+
+## Slide 1: Title
+
+**ORCHESTRIX**
+Intelligent Warehouse Orchestration Platform
+
+Software-Only | Multi-Robot Coordination | Real-Time Replanning
+
+---
+
+## Slide 2: Overview
+
+ORCHESTRIX is a software-based warehouse orchestration platform.
+
+* Manages a fleet of Autonomous Mobile Robots (AMRs)
+* Bridges business-level planning (WMS) and robot-level execution (RCS)
+* Designed for dynamic, real-world warehouse environments
+
+---
+
+## Slide 3: Problem We Solve
+
+### Problem
+
+* Multiple robots operating simultaneously
+* Dynamic obstacles appear unexpectedly
+* Risk of collisions and deadlocks
+* Hardware-based testing is costly and slow
+
+### Solution
+
+* Intelligent task orchestration
+* Dynamic path planning and re-planning
+* Software-only simulation for rapid testing
+
+---
+
+## Slide 4: System Architecture
+
+### 3-Layer Industrial Architecture
+
+**WMS – Business Brain**
+
+* Generates warehouse tasks
+* Manages inventory and orders
+
+**WCS – Traffic Controller**
+
+* Assigns tasks to optimal robots
+* Monitors fleet status
+
+**RCS – Robot Driver**
+
+* Calculates paths
+* Controls movement and obstacle avoidance
+
+---
+
+## Slide 5: Core Intelligence
+
+### Algorithms Used
+
+**A* Pathfinding**
+
+* Optimal shortest-path algorithm
+* Grid-based navigation
+* Manhattan distance heuristic
+
+**Dynamic Re-Planning**
+
+* Detects sudden obstacles
+* Safely pauses robot movement
+* Recomputes path in real time
+
+---
+
+## Slide 6: Dynamic Environment Handling
+
+### Real-Time Adaptation
+
+* Robots validate the next cell before moving
+* Blocked path triggers an immediate stop
+* New path calculated from the current position
+* No collision and no system halt
+
+**Result:** Safe and efficient navigation in live environments
+
+---
+
+## Slide 7: Technology Stack
+
+### Backend
+
+* Python 3.12+
+* FastAPI (asynchronous and high performance)
+* Modular architecture (WMS, WCS, RCS)
+
+### Frontend
+
+* React 18 (Vite)
+* Manual CSS (no Tailwind or UI frameworks)
+* Custom grid-based visualization
+
+---
+
+## Slide 8: Platform Capabilities
+
+### Key Features
+
+* Multi-robot task orchestration
+* Intelligent task assignment
+* Live robot tracking
+* Dynamic obstacle simulation
+* Real-time path re-planning
+
+---
+
+## Slide 9: User Interaction
+
+### How Users Interact
+
+* Dispatch tasks using the operations panel
+* Add or remove robots dynamically
+* Place obstacles by interacting with the map
+* Reset or randomize the warehouse layout
+* Observe live robot behavior
+
+---
+
+## Slide 10: Why Software-Only?
+
+### Industry Insight
+
+* Majority of automation logic is developed before hardware integration
+* Enables faster iteration and safer testing
+* Mirrors real-world WCS and RCS development workflows
+
+ORCHESTRIX focuses on orchestration logic rather than hardware dependencies.
+
+---
+
+## Slide 11: Key Highlights
+
+* Real-world warehouse modeling
+* Intelligent multi-agent coordination
+* Dynamic path re-planning
+* Clean and modular architecture
+* Suitable for both hackathons and industry demonstrations
+
+---
+
+## Slide 12: Final Statement
+
+ORCHESTRIX demonstrates how modern warehouse automation systems coordinate multiple robots intelligently in dynamic environments using software-only orchestration.
