@@ -31,38 +31,55 @@ async def move_to_target(robot_id: str, target_coords: tuple, task_id: str = Non
             return False
         steps_count += 1
 
-        # 1. Plan Path from Current Location
+        # 1. Gather Dynamic Obstacles (Other Robots)
+        other_robots_pos = []
+        for r_id, r in wcs_robots.items():
+            if r_id != robot_id and r.status != RobotStatus.IDLE: # Only consider active robots as obstacles? Or all? 
+                # Consider ALL robots as obstacles to avoid crashing into idle ones
+                other_robots_pos.append((r.x, r.y))
+
+        # 2. Plan Path from Current Location
         current_pos = (robot.x, robot.y)
-        path = map_manager.find_path(current_pos, target_coords)
-        robot.path = path # Visual debug
+        # Pass other robots as obstacles
+        path = map_manager.find_path(current_pos, target_coords, dynamic_obstacles=other_robots_pos)
+        robot.path = path 
         
         if not path or len(path) < 2:
-            # Check if we are already there (len=1 and path[0] == target)
             if path and path[0] == target_coords:
                 break
             
-            logger.warning(f"Robot {robot_id} cannot find path from {current_pos} to {target_coords}")
-            return False
+            logger.warning(f"Robot {robot_id} blocked by static/dynamic obstacles.")
+            # Wait a bit, maybe the other robot moves
+            await asyncio.sleep(1)
+            # Check timeout/retry logic here if strict
+            continue # Retry loop
 
-        # 2. Identify Next Step
-        # path[0] is current, path[1] is next
+        # 3. Identify Next Step
         next_pos = path[1]
 
-        # 3. Check Obstacle (Just before moving)
+        # 4. Check Collision (Double Check before moving)
+        # Check Static
         if map_manager.is_blocked(next_pos[0], next_pos[1]):
-            logger.warning(f"Robot {robot_id} path blocked at {next_pos}. Re-planning...")
-            # We just continue the loop -> next iteration will re-call find_path()
-            # which will see the obstacle (assuming map_manager is updated)
-            # IMPORTANT: map_manager.is_blocked checks the *live* obstacle set.
-             
-            # Brief pause before re-planning to not spam CPU
+            logger.warning(f"Robot {robot_id} blocked by Static Obstacle. Re-planning...")
             await asyncio.sleep(0.5)
             continue
+            
+        # Check Dynamic (Is any robot currently at next_pos?)
+        collision = False
+        for r_id, r in wcs_robots.items():
+             if r_id != robot_id and (r.x, r.y) == next_pos:
+                 collision = True
+                 break
         
-        # 4. Move
+        if collision:
+             logger.warning(f"Robot {robot_id} blocked by another Robot at {next_pos}. Waiting...")
+             await asyncio.sleep(1) # Wait for it to move
+             continue
+
+        # 5. Move
         robot.x, robot.y = next_pos
         
-        # 5. Simulate Speed
+        # 6. Simulate Speed
         await asyncio.sleep(0.5) 
 
         # 6. Report Progress (Mock)

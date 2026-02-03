@@ -85,10 +85,20 @@ class MapManager:
                     results.append((nx, ny))
         return results
 
-    def find_path(self, start: Tuple[int, int], goal: Tuple[int, int]) -> List[Tuple[int, int]]:
-        if start in self.obstacles or goal in self.obstacles:
-            return []
+    def find_path(self, start: Tuple[int, int], goal: Tuple[int, int], dynamic_obstacles: List[Tuple[int, int]] = None) -> List[Tuple[int, int]]:
+        if dynamic_obstacles is None:
+            dynamic_obstacles = []
+            
+        all_obstacles = self.obstacles.union(set(dynamic_obstacles))
 
+        if start in all_obstacles or goal in all_obstacles:
+            # If start is blocked by a dynamic obstacle (e.g. another robot), we might be stuck.
+            # But usually we are AT start. So usually start shouldn't be considered "blocked" for the purpose of *being there*, but we can't move *back* to it?
+            # Actually, standard A* fails if start/goal is blocked.
+            # If goal is occupied by another robot, we can't path there. return empty.
+            if goal in all_obstacles:
+                 return []
+        
         if start == goal:
             return [start]
             
@@ -103,7 +113,16 @@ class MapManager:
             if current == goal:
                 break
 
-            for next_node in self.get_neighbors(current):
+            # Custom get_neighbors that checks dynamic obstacles
+            neighbors = []
+            x, y = current
+            candidates = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
+            for nx, ny in candidates:
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if (nx, ny) not in all_obstacles:
+                        neighbors.append((nx, ny))
+
+            for next_node in neighbors:
                 new_cost = cost_so_far[current] + 1
                 if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
                     cost_so_far[next_node] = new_cost
