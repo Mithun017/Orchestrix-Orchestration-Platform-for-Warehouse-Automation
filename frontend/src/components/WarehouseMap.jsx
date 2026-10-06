@@ -69,6 +69,46 @@ const WarehouseMap = ({ robots, obstacles = [], onCellClick }) => {
         return grid;
     };
 
+    // 3. Render Path Lines (RViz Style)
+    const renderPaths = () => {
+        return robots.map(robot => {
+            if (!robot.path || robot.path.length === 0) return null;
+
+            // Generate SVG path string
+            // Start at current robot position (interpolated or grid)
+            // Then connect all points in path
+
+            // Convert grid coords to pixels (center of cell)
+            const getCenter = (x, y) => {
+                return {
+                    cx: x * (CELL_SIZE + GAP) + CELL_SIZE / 2,
+                    cy: y * (CELL_SIZE + GAP) + CELL_SIZE / 2
+                };
+            };
+
+            const current = getCenter(robot.x, robot.y);
+            let d = `M ${current.cx} ${current.cy}`;
+
+            robot.path.forEach(pt => {
+                const p = getCenter(pt[0], pt[1]);
+                d += ` L ${p.cx} ${p.cy}`;
+            });
+
+            return (
+                <path
+                    key={`path-${robot.robot_id}`}
+                    d={d}
+                    stroke={robot.status === "BUSY" ? "#10b981" : "#64748b"}
+                    strokeWidth="3"
+                    strokeDasharray="5,5"
+                    fill="none"
+                    opacity="0.6"
+                    className="path-line"
+                />
+            );
+        });
+    };
+
     // 2. Render Robot Overlay Layer
     const renderRobots = () => {
         return robots.map(robot => (
@@ -94,6 +134,7 @@ const WarehouseMap = ({ robots, obstacles = [], onCellClick }) => {
                     transition: 'transform 0.5s linear, background-color 0.3s' // Smooth movement!
                 }}
             >
+                <div style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.5)', animation: 'pulse 2s infinite' }}></div>
                 R
             </div>
         ));
@@ -104,10 +145,25 @@ const WarehouseMap = ({ robots, obstacles = [], onCellClick }) => {
     return (
         <div className="warehouse-map-container" style={{ width: totalSize + 48, height: totalSize + 48, position: 'relative' }}>
             <div style={{ position: 'relative', width: totalSize, height: totalSize }}>
+                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
+                    {renderPaths()}
+                </svg>
                 {renderGrid()}
                 {renderRobots()}
             </div>
             <style>{`
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .path-line {
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -10;
+            }
+        }
         .warehouse-map-container {
           background: #0f172a;
           padding: 1.5rem;

@@ -83,6 +83,12 @@ class WarehouseRobotNode(Node):
     def __init__(self):
         super().__init__('warehouse_robot_node')
         self.get_logger().info('Warehouse Robot Node Started')
+        print("\n" + "="*50)
+        print(" ORCHESTRIX ROBOT NODE (RCS)")
+        print(" Mode: " + ("MOCK" if 'rclpy_mock' in str(rclpy) else "REAL ROS2"))
+        print(" Target: WCS Backend (http://127.0.0.1:8000)")
+        print(" VISUALIZATION: http://localhost:5173 (Open this to see robots moving!)")
+        print("="*50 + "\n")
         
         # 1. ROS Publishers
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
@@ -136,6 +142,10 @@ class WarehouseRobotNode(Node):
                     if not server_task_id:
                         self.current_task = None
                         
+        except requests.exceptions.ConnectionError:
+             self.get_logger().error("Cannot connect to WCS Backend at http://127.0.0.1:8000")
+             self.get_logger().info("Please ensure 'start_orchestrator.bat' is running!")
+             time.sleep(2) # Don't spam logs
         except Exception as e:
              self.get_logger().warn(f"Connection error to WCS: {e}")
 
